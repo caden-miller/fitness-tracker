@@ -12,6 +12,8 @@ import * as ExpoDevice from "expo-device";
 
 import base64 from "react-native-base64";
 
+import { read } from "ieee754";
+
 const HEART_RATE_UUID = "84582cd0-3df0-4e73-9496-29010d7445dd";
 const HEART_RATE_CHARACTERISTIC = "84582cd1-3df0-4e73-9496-29010d7445dd";
 
@@ -87,7 +89,7 @@ function useBLE(): BluetoothLowEnergyApi {
     }
   };
 
-  const isDuplicteDevice = (devices: Device[], nextDevice: Device) =>
+  const isDuplicateDevice = (devices: Device[], nextDevice: Device) =>
     devices.findIndex((device) => nextDevice.id === device.id) > -1;
 
   const scanForPeripherals = () =>
@@ -95,9 +97,9 @@ function useBLE(): BluetoothLowEnergyApi {
       if (error) {
         console.log(error);
       }
-      if (device && device.name?.includes("PeripheralArduino")) {
+      if (device && device.name?.toLowerCase().includes("arduino")) { //  && device.name?.includes("PeripheralArduino")
         setAllDevices((prevState: Device[]) => {
-          if (!isDuplicteDevice(prevState, device)) {
+          if (!isDuplicateDevice(prevState, device)) {
             return [...prevState, device];
           }
           return prevState;
@@ -150,7 +152,14 @@ function useBLE(): BluetoothLowEnergyApi {
     //     Number(rawData[2].charCodeAt(2));
     // }
 
-    const heartRate = parseFloat(characteristic.value);
+    const rawData = base64.decode(characteristic.value);
+    const buf = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i++) {
+        buf[i] = rawData.charCodeAt(i);
+    }
+
+    let heartRate = read(buf, 0, true, 23, 4);
+    heartRate = Math.round(heartRate);
 
     setHeartRate(heartRate);
   };

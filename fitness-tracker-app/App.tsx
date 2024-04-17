@@ -58,7 +58,7 @@ const App = () => {
         style={styles.ctaButton}
       >
         <Text style={styles.ctaButtonText}>
-          {connectedDevice ? "Disconnect" : "Connect"}
+          {connectedDevice ? "Disconnect from Device" : "Connect to Device"}
         </Text>
       </TouchableOpacity>
       <DeviceModal

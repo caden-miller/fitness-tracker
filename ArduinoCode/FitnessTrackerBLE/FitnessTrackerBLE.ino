@@ -40,13 +40,9 @@ void setup() {
   particleSensor.setPulseAmplitudeGreen(0); //Turn off Green LED
 
   Serial.println("Trying to start BLE.");
-  if (!BLE.begin()) {
-    while (1) {
-      Serial.println("starting BLE failed!");
-    }
-  }
+  BLE.begin();
 
-  BLE.setLocalName("PeripheralArduino");
+  BLE.setLocalName("Arduino");
   BLE.setAdvertisedService(fitnessTrackerService);
   fitnessTrackerService.addCharacteristic(chHRAVG);
   BLE.addService(fitnessTrackerService);
@@ -93,7 +89,6 @@ void loop() {
   } // no central
     Serial.print("Disconnected from central: ");
     Serial.println(central.address());
-    Serial.print("Mac Address is "); Serial.println(WiFi.macAddress());
 }
 
 
@@ -118,6 +113,6 @@ void updateValues()
       beatAvg /= RATE_SIZE;
     }
   }
-
+  Serial.println(beatsPerMinute);
   chHRAVG.writeValue(beatsPerMinute);
 }
