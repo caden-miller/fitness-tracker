@@ -10,6 +10,8 @@ import {
 } from "@shopify/react-native-skia";
 import { View } from "react-native";
 
+
+// animation for heart
 export const PulseIndicator = () => {
   const clock1 = useClockValue();
   const expo = useImage(require("./img/expo.png"));

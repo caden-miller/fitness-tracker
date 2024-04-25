@@ -7,15 +7,14 @@ import {
   Characteristic,
   Device,
 } from "react-native-ble-plx";
-
 import * as ExpoDevice from "expo-device";
-
 import base64 from "react-native-base64";
-
 import { read } from "ieee754";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HEART_RATE_UUID = "84582cd0-3df0-4e73-9496-29010d7445dd";
 const HEART_RATE_CHARACTERISTIC = "84582cd1-3df0-4e73-9496-29010d7445dd";
+const UUID_INTERRUPT_CHARACTERISTIC = "84582cd2-3df0-4e73-9496-29010d7445dd";
 
 interface BluetoothLowEnergyApi {
   requestPermissions(): Promise<boolean>;
@@ -27,6 +26,7 @@ interface BluetoothLowEnergyApi {
   heartRate: number;
 }
 
+// get permissions, connect wtih BLE device, update heart rate, and display graphs   
 function useBLE(): BluetoothLowEnergyApi {
   const bleManager = useMemo(() => new BleManager(), []);
   const [allDevices, setAllDevices] = useState<Device[]>([]);
@@ -97,7 +97,8 @@ function useBLE(): BluetoothLowEnergyApi {
       if (error) {
         console.log(error);
       }
-      if (device && device.name?.toLowerCase().includes("arduino")) { //  && device.name?.includes("PeripheralArduino")
+      // based on FitnessTrackerBLE.ino
+      if (device && device.name?.toLowerCase().includes("arduino")) {
         setAllDevices((prevState: Device[]) => {
           if (!isDuplicateDevice(prevState, device)) {
             return [...prevState, device];
@@ -138,38 +139,48 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("No Data was recieved");
       return -1;
     }
-
-    // const rawData = base64.decode(characteristic.value);
-    // let innerHeartRate: number = -1;
-
-    // const firstBitValue: number = Number(rawData) & 0x01;
-
-    // if (firstBitValue === 0) {
-    //   innerHeartRate = rawData[1].charCodeAt(0);
-    // } else {
-    //   innerHeartRate =
-    //     Number(rawData[1].charCodeAt(0) << 8) +
-    //     Number(rawData[2].charCodeAt(2));
-    // }
-
+    // convert data to int and then update it   
     const rawData = base64.decode(characteristic.value);
     const buf = new Uint8Array(rawData.length);
     for (let i = 0; i < rawData.length; i++) {
-        buf[i] = rawData.charCodeAt(i);
+      buf[i] = rawData.charCodeAt(i);
     }
-
     let heartRate = read(buf, 0, true, 23, 4);
-    heartRate = Math.round(heartRate);
-
     setHeartRate(heartRate);
+  };
+
+  const onInterruptUpdate = (
+    error: BleError | null,
+    characteristic: Characteristic | null
+  ) => {
+    if (error) {
+      console.log(error);
+      return;
+    } else if (!characteristic?.value) {
+      console.log("No Data was recieved");
+      return;
+    }
+    const interruptValue = base64.decode(characteristic.value);
+    if (interruptValue === 1) {
+      // clear async storage
+      AsyncStorage.clear().then(() => {
+        console.log('AsyncStorage cleared');
+      });
+    }
   };
 
   const startStreamingData = async (device: Device) => {
     if (device) {
+      // monitor for raised characteristic
       device.monitorCharacteristicForService(
         HEART_RATE_UUID,
         HEART_RATE_CHARACTERISTIC,
         onHeartRateUpdate
+      );
+      device.monitorCharacteristicForService(
+        HEART_RATE_UUID,
+        UUID_INTERRUPT_CHARACTERISTIC,
+        onInterruptUpdate
       );
     } else {
       console.log("No Device Connected");

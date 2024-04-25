@@ -1,33 +1,43 @@
-# fitness-tracker
-Fitness tracker that also detects heart rate and pulse ox anomalies. 
+# pulseduino
+Pulse Ox that sends data to an Android app, using an Arduino, MAX30102, and BLE standard. 
 
-Implemented using an Arduino Nano 33 BLE and MAX30102 heart rate and pulse ox sensor.
+## Dependencies
+ - Node.js
+ - Android SDK and IDE
+ - Arduino IDE 
+ - Expo Go on Android phone (may have permission issues with newer devices)
+ - Android App Developer Permissions (secret setting)
 
 ## Installation
- - install project using Node.js
- - ```cd fitness-tracker-app``` 
+ - download from github using either of the following
+ - HTTPS
+ - ```git clone https://github.com/caden-miller/pulseduino.git```
+ - SSH
+ - ```git clone git@github.com:caden-miller/pulseduino.git```
+ - install project using NPM 
+ - ```cd pulseduino``` 
  - ```npm install```
-
-## Running 
  - setup eas 
  - ```npx npm install eas-cli```
  - ```npx expo install expo-dev-client```
- - run using eas
- - ```eas build --profile development --platform android```
- - scan QR code once built
+
+## Running 
+ - run using expo
+ - ```npm run android```
+ - then use the CLI to navigate to an android and scan the QR code
  - install on Android
- - scan for devices
+ - upload Arduino code to your Arduino Nano 33 BLE
+ - use serial monitor to debug any connection issues 
+ - turn on BLE 
  - accept permissions
- - get heart rate
+ - connect Arduino
+ - enjoy heart rate reading!
 
 ## Plans
- - verify app can connect to Arduino
- - verify BLE is transmitting HR data
- 
- - finalize 3D model
- - verify heart rate data
- - 
- - make battery work 
- - finalize app UI
- - test
- - finalize and polish
+ - verify the graph displays properly
+ - implement database for more data storage
+ - implement different user profiles
+ - alert for inconsistent or unreasonable heart rate readings 
+ - alerts and corresponding information about unhealthy heart rates
+ - add support for SpO2
+ - add exercise support?
